@@ -1,4 +1,4 @@
-﻿namespace TweetBook.Routes.V1
+﻿namespace TweetBook.Contracts.V1
 {
     public static class ApiRoutes
     {
@@ -8,7 +8,9 @@
 
         public static class Posts
         {
-            public const string GetPosts = Base +"/"+"posts";
+            public const string GetPosts = Base + "/" + "posts";
+            public const string CreatePost = Base + "/" + "posts";
+            public const string Get = Base + "/" + "posts/{postId}";
         }
     }
 }
