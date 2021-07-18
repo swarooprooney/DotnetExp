@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
+using TweetBook.Services;
 using static TweetBook.Contracts.V1.ApiRoutes;
 
 namespace TweetBook.Controllers.V1
@@ -13,34 +12,35 @@ namespace TweetBook.Controllers.V1
     [ApiController]
     public class PostsController : ControllerBase
     {
-
-        private readonly List<Post> _posts;
-        public PostsController()
+        private readonly IPostService _postService;
+        public PostsController(IPostService postService)
         {
-            _posts = new List<Post>();
-            for (int i = 0; i < 5; i++)
-            {
-                _posts.Add(new Post { PostId = Guid.NewGuid().ToString() });
-            }
+            _postService = postService;
         }
-        
+
         [HttpGet(Posts.GetPosts)]
         public IActionResult GetPosts()
         {
-            return Ok(_posts);
+            return Ok(_postService.GetAllPosts());
+        }
+
+        [HttpGet(Posts.Get)]
+        public IActionResult Get([FromRoute] Guid postId)
+        {
+            return Ok(_postService.GetPostById(postId));
         }
 
         [HttpPost(Posts.CreatePost)]
         public IActionResult Create([FromBody]CreatePostRequest createPost)
         {
-            if (string.IsNullOrEmpty(createPost.PostId))
+            if (createPost.PostId == Guid.Empty)
             {
-                createPost.PostId = Guid.NewGuid().ToString();
+                createPost.PostId = Guid.NewGuid();
             }
             var post = new Post { PostId = createPost.PostId };
-            _posts.Add(post);
+            _postService.GetAllPosts().Add(post);
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUrl = baseUrl + "/" + Posts.Get.Replace("{postId}", post.PostId);
+            var locationUrl = baseUrl + "/" + Posts.Get.Replace("{postId}", post.PostId.ToString());
             var response = new CreatePostResponse { PostId = post.PostId };
             return Created(locationUrl, response);
         }
