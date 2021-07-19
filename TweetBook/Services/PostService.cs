@@ -48,8 +48,7 @@ namespace TweetBook.Services
             var existingPost = GetPostById(postId);
             if (existingPost != null)
             {
-                _posts.Remove(existingPost);
-                return true;
+                return _posts.Remove(existingPost);
             }
             return false;
         }
