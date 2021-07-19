@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Net;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
@@ -54,6 +55,16 @@ namespace TweetBook.Controllers.V1
             var locationUrl = baseUrl + "/" + Posts.Get.Replace("{postId}", post.PostId.ToString());
             var response = new CreatePostResponse { PostId = post.PostId };
             return Created(locationUrl, response);
+        }
+
+        [HttpDelete(Posts.Delete)]
+        public IActionResult Delete([FromRoute] Guid postId)
+        {
+            if(_postService.DeletePost(postId))
+            {
+                return NoContent();
+            }
+            return NotFound();
         }
     }
 }
