@@ -11,6 +11,7 @@
             public const string GetPosts = Base + "/" + "posts";
             public const string CreatePost = Base + "/" + "posts";
             public const string Get = Base + "/" + "posts/{postId}";
+            public const string Update = Base + "/" + "posts/{postId}";
         }
     }
 }

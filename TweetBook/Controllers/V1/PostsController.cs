@@ -30,6 +30,17 @@ namespace TweetBook.Controllers.V1
             return Ok(_postService.GetPostById(postId));
         }
 
+        [HttpPut(Posts.Update)]
+        public IActionResult Update([FromRoute] Guid postId,[FromBody] UpdatePost postToBeUpdated)
+        {
+            var post = new Post { PostId = postId, Name = postToBeUpdated.Name };
+            if(_postService.UpdatePost(post))
+            {
+                return Ok(post);
+            }
+            return NotFound();
+        }
+
         [HttpPost(Posts.CreatePost)]
         public IActionResult Create([FromBody]CreatePostRequest createPost)
         {

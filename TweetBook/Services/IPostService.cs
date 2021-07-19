@@ -9,5 +9,7 @@ namespace TweetBook.Services
         public List<Post> GetAllPosts();
 
         public Post GetPostById(Guid postId);
+
+        public bool UpdatePost(Post postToBeUpdated);
     }
 }

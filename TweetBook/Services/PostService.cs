@@ -29,5 +29,18 @@ namespace TweetBook.Services
         {
             return _posts.FirstOrDefault(x => x.PostId == postId);
         }
+
+        public bool UpdatePost(Post postToBeUpdated)
+        {
+            var existingPost = GetPostById(postToBeUpdated.PostId);
+            if (existingPost != null)
+            {
+                var index = _posts.FindIndex(x => x.PostId == postToBeUpdated.PostId);
+                _posts[index] = postToBeUpdated;
+                return true;
+            }
+            return false;
+
+        }
     }
 }
