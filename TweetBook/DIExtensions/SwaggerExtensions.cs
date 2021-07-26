@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using TweetBook.Data;
-using TweetBook.Services;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
+using System.Collections.Generic;
 
 namespace TweetBook.DIExtensions
 {
@@ -18,22 +15,35 @@ namespace TweetBook.DIExtensions
                     Title = "My tweetbook API",
                     Version = "v1"
                 });
-            });
-        }
-    }
+                x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description =
+        "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
 
-    public static class EntityFrameworkExtensions
+                x.AddSecurityRequirement(new OpenApiSecurityRequirement()
+{
     {
-        public static void AddEntityFrameworkDependency(this IServiceCollection services, IConfiguration configuration)
+        new OpenApiSecurityScheme
         {
-            services.AddDbContext<DataContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection")));
-            services.AddDatabaseDeveloperPageExceptionFilter();
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            },
+            Scheme = "oauth2",
+            Name = "Bearer",
+            In = ParameterLocation.Header,
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<DataContext>();
-            services.AddSingleton<IPostService, PostService>();
+        },
+        new List<string>()
+    }
+});
+            });
         }
     }
 }
