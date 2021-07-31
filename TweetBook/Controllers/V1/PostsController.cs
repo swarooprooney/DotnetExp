@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,9 +12,8 @@ using static TweetBook.Contracts.V1.ApiRoutes;
 
 namespace TweetBook.Controllers.V1
 {
-
-    [ApiController]
-    public class PostsController : ControllerBase
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class PostsController : Controller
     {
         private readonly IPostService _postService;
         public PostsController(IPostService postService)

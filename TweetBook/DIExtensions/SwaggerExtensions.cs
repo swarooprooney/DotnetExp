@@ -10,7 +10,7 @@ namespace TweetBook.DIExtensions
         {
             services.AddSwaggerGen(x =>
             {
-                x.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                x.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "My tweetbook API",
                     Version = "v1"

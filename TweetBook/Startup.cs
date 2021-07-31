@@ -24,30 +24,9 @@ namespace TweetBook
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddEntityFrameworkDependency(Configuration);
-            var jwtOptions = new JwtOptions();
-            Configuration.Bind(nameof(JwtOptions), jwtOptions);
-            services.AddSingleton(jwtOptions);
-            //services.AddControllersWithViews();
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(x =>
-                {
-                    x.SaveToken = true;
-                    x.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtOptions.Secret)),
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        RequireExpirationTime = false,
-                        ValidateLifetime = true
-                    };
-                });
+            services.InstallJwtDependency(Configuration);
             services.InstallSwaggerDependency();
+            services.InstallServices();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,7 +55,7 @@ namespace TweetBook
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
