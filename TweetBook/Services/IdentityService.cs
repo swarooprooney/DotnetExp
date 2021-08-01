@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,7 +7,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using TweetBook.Contracts.V1.Request;
+using TweetBook.Data;
 using TweetBook.Domain;
+using TweetBook.Model;
 using TweetBook.Options;
 
 namespace TweetBook.Services
@@ -15,14 +19,18 @@ namespace TweetBook.Services
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly JwtOptions _jwtOptions;
+        private readonly TokenValidationParameters _validationTokenParameters;
+        private readonly DataContext _context;
 
-        public IdentityService(UserManager<IdentityUser> userManager, JwtOptions jwtOptions)
+        public IdentityService(UserManager<IdentityUser> userManager, JwtOptions jwtOptions, TokenValidationParameters validationTokenParameters, DataContext context)
         {
             _userManager = userManager;
             _jwtOptions = jwtOptions;
+            _validationTokenParameters = validationTokenParameters;
+            _context = context;
         }
 
-        public async Task<AuthenticationResult> LoginAsync(User user)
+        public async Task<AuthenticationResult> LoginAsync(UserModel user)
         {
             var userFromDb = await _userManager.FindByEmailAsync(user.Email);
             if (userFromDb == null)
@@ -41,15 +49,78 @@ namespace TweetBook.Services
                     Errors = new[] { "UserName or password is incorrect" }
                 };
             }
-            var token = CreateToken(userFromDb);
-            return new AuthenticationResult
-            {
-                Token = token,
-                Success = true
-            };
+            return await CreateAndReturnToken(userFromDb);
+
         }
 
-        public async Task<AuthenticationResult> RegisterUserAsync(User user)
+        public async Task<AuthenticationResult> RefreshToken(RefreshTokenModel refreshTokenRequest)
+        {
+            var validatedToken = GetPrincipalFromToken(refreshTokenRequest.Token);
+            if (validatedToken == null)
+            {
+                return new AuthenticationResult { Errors = new[] { "Invalid Token" } };
+            }
+            var expiryDateUnix = long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+            var expirtDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(expiryDateUnix);
+            if (expirtDateTimeUtc > DateTime.UtcNow)
+            {
+                return new AuthenticationResult { Errors = new[] { "This token hasn't expired" } };
+            }
+            var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+            var storedRefreshToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == refreshTokenRequest.RefreshToken);
+
+            if (storedRefreshToken == null)
+            {
+                return new AuthenticationResult { Errors = new[] { "This token doesn't exist" } };
+            }
+            if (DateTime.UtcNow > storedRefreshToken.ExpiryDate)
+            {
+                return new AuthenticationResult { Errors = new[] { "This token has expired" } };
+            }
+            if (storedRefreshToken.Invalidated)
+            {
+                return new AuthenticationResult { Errors = new[] { "This token has been invalidated" } };
+            }
+            if (storedRefreshToken.Used)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token has been used" } };
+            }
+            if (storedRefreshToken.JwtId != jti)
+            {
+                return new AuthenticationResult { Errors = new[] { "This refresh token is invalid" } };
+            }
+            storedRefreshToken.Used = true;
+            _context.RefreshTokens.Update(storedRefreshToken);
+            await _context.SaveChangesAsync();
+            var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(x => x.Type == "id").Value);
+            return await CreateAndReturnToken(user);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, _validationTokenParameters, out var validatedToken);
+                if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
+                {
+                    return null;
+                }
+                return principal;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+        {
+            return (validatedToken is JwtSecurityToken jwtSecurityToken)
+                && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public async Task<AuthenticationResult> RegisterUserAsync(UserModel user)
         {
             var existingUser = await _userManager.FindByEmailAsync(user.Email);
             if (existingUser != null)
@@ -73,15 +144,10 @@ namespace TweetBook.Services
                     Errors = createdUser.Errors.Select(x => x.Description)
                 };
             }
-            var token = CreateToken(newUser);
-            return new AuthenticationResult
-            {
-                Token = token,
-                Success = createdUser.Succeeded
-            };
+            return await CreateAndReturnToken (newUser);
         }
 
-        private string CreateToken(IdentityUser newUser)
+        private async Task<AuthenticationResult> CreateAndReturnToken(IdentityUser newUser)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtOptions.Secret);
@@ -94,11 +160,32 @@ namespace TweetBook.Services
                     new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
                     new Claim("id", newUser.Id)
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.Add(_jwtOptions.TokenLifetime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            RefreshToken refreshToken = await CreateAndStoreRefreshToken(newUser, token);
+            return new AuthenticationResult
+            {
+                Token = tokenHandler.WriteToken(token),
+                Success = true,
+                RefreshToken = refreshToken.Token
+            };
+        }
+
+        private async Task<RefreshToken> CreateAndStoreRefreshToken(IdentityUser newUser, SecurityToken token)
+        {
+            var refreshToken = new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString(),
+                JwtId = token.Id,
+                UserId = newUser.Id,
+                CreationDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddMonths(6)
+            };
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
+            return refreshToken;
         }
     }
 }

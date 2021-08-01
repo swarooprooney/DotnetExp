@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TweetBook.Domain
+namespace TweetBook.Model
 {
-    public class User
+    public class UserModel
     {
-        private string userName;
-
         public string Email { get; set; }
 
         public string Password { get; set; }

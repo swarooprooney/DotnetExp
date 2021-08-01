@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
+using TweetBook.GeneralExtensions;
 using TweetBook.Services;
 using static TweetBook.Contracts.V1.ApiRoutes;
 
@@ -34,10 +35,16 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPut(Posts.Update)]
-        public async Task<IActionResult> Update([FromRoute] Guid postId,[FromBody] UpdatePost postToBeUpdated)
+        public async Task<IActionResult> Update([FromRoute] Guid postId, [FromBody] UpdatePost postToBeUpdated)
         {
-            var post = new Post { PostId = postId, Name = postToBeUpdated.Name };
-            if(await _postService.UpdatePostAsync(post))
+            var isOwner = await _postService.CheckIfUserIsOwnerOfPostAsync(HttpContext.GetUserId(), postId);
+            if (!isOwner)
+            {
+                return StatusCode(403, new { error = "You are not the owner of the post" });
+            }
+            var post = await _postService.GetPostByIdAsync(postId);
+            post.Name = postToBeUpdated.Name;
+            if (await _postService.UpdatePostAsync(post))
             {
                 return Ok(post);
             }
@@ -45,9 +52,14 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPost(Posts.CreatePost)]
-        public async Task<IActionResult> Create([FromBody]CreatePostRequest createPost)
+        public async Task<IActionResult> Create([FromBody] CreatePostRequest createPost)
         {
-            var post = new Post { PostId = Guid.NewGuid(), Name = createPost.Name };
+            var post = new Post
+            {
+                PostId = Guid.NewGuid(),
+                Name = createPost.Name,
+                UserId = HttpContext.GetUserId()
+            };
             await _postService.CreatePostAsync(post);
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
             var locationUrl = baseUrl + "/" + Posts.Get.Replace("{postId}", post.PostId.ToString());
@@ -58,7 +70,12 @@ namespace TweetBook.Controllers.V1
         [HttpDelete(Posts.Delete)]
         public async Task<IActionResult> Delete([FromRoute] Guid postId)
         {
-            if(await _postService.DeletePostAsync(postId))
+            var isOwner = await _postService.CheckIfUserIsOwnerOfPostAsync(HttpContext.GetUserId(), postId);
+            if (!isOwner)
+            {
+                return StatusCode(403, new { error = "You are not the owner of the post" });
+            }
+            if (await _postService.DeletePostAsync(postId))
             {
                 return NoContent();
             }
