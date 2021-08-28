@@ -14,6 +14,7 @@ using static TweetBook.Contracts.V1.ApiRoutes;
 namespace TweetBook.Controllers.V1
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ApiController]
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
