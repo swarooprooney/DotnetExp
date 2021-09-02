@@ -147,7 +147,7 @@ namespace TweetBook.Services
             return await CreateAndReturnToken (newUser);
         }
 
-        private async Task<AuthenticationResult> CreateAndReturnToken(IdentityUser newUser)
+        private async Task<AuthenticationResult> CreateAndReturnToken(IdentityUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtOptions.Secret);
@@ -155,16 +155,16 @@ namespace TweetBook.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, newUser.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
-                    new Claim("id", newUser.Id)
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim("id", user.Id)
                 }),
                 Expires = DateTime.UtcNow.Add(_jwtOptions.TokenLifetime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            RefreshToken refreshToken = await CreateAndStoreRefreshToken(newUser, token);
+            RefreshToken refreshToken = await CreateAndStoreRefreshToken(user, token);
             return new AuthenticationResult
             {
                 Token = tokenHandler.WriteToken(token),
