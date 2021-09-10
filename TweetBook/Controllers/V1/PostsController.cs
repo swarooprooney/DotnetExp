@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
@@ -74,7 +73,11 @@ namespace TweetBook.Controllers.V1
             var isOwner = await _postService.CheckIfUserIsOwnerOfPostAsync(HttpContext.GetUserId(), postId);
             if (!isOwner)
             {
-                return StatusCode(403, new { error = "You are not the owner of the post" });
+                return StatusCode(403,
+                    new
+                    {
+                        error = "You are not the owner of the post"
+                    });
             }
             if (await _postService.DeletePostAsync(postId))
             {

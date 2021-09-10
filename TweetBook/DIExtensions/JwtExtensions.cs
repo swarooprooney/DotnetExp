@@ -39,7 +39,9 @@ namespace TweetBook.DIExtensions
                     x.SaveToken = true;
                     x.TokenValidationParameters = tokenValidationParameters;
                 });
-
+            services.AddAuthorization(options=> {
+                options.AddPolicy("TagCreator", builder =>  builder.RequireClaim("tags.create", "true"));
+            });
         }
     }
 }

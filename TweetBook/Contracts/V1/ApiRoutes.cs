@@ -21,5 +21,11 @@
             public const string Login = Base + "/identity/login";
             public const string Refresh = Base + "/identity/refresh";
         }
+
+        public static class Tags
+        {
+            public const string CreateTag = Base + "/Tags";
+            public const string GetTags = Base + "/Tags";
+        }
     }
 }

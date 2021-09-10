@@ -13,6 +13,7 @@ namespace TweetBook.DIExtensions
         {
             service.AddScoped<IIdentityService, IdentityService>();
             service.AddScoped<IPostService, PostService>();
+            service.AddScoped<ITagService, TagService>();
         }
     }
 }

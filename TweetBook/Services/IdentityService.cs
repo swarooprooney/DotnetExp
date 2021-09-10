@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -130,8 +131,10 @@ namespace TweetBook.Services
                     Errors = new[] { "User with this email address already exists" }
                 };
             }
+            var userId = Guid.NewGuid();
             var newUser = new IdentityUser
             {
+                Id = userId.ToString(),
                 Email = user.Email,
                 UserName = user.UserName
             };
@@ -144,22 +147,26 @@ namespace TweetBook.Services
                     Errors = createdUser.Errors.Select(x => x.Description)
                 };
             }
-            return await CreateAndReturnToken (newUser);
+            await _userManager.AddClaimAsync(newUser, new Claim("tags.create", "true"));
+            return await CreateAndReturnToken(newUser);
         }
 
         private async Task<AuthenticationResult> CreateAndReturnToken(IdentityUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtOptions.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
+            var claims = new List<Claim>
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim("id", user.Id)
-                }),
+                };
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            claims.AddRange(userClaims);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.Add(_jwtOptions.TokenLifetime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
