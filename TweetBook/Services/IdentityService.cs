@@ -147,7 +147,7 @@ namespace TweetBook.Services
                     Errors = createdUser.Errors.Select(x => x.Description)
                 };
             }
-            await _userManager.AddClaimAsync(newUser, new Claim("tags.create", "true"));
+            //await _userManager.AddClaimAsync(newUser, new Claim("tags.create", "true"));
             return await CreateAndReturnToken(newUser);
         }
 
@@ -162,8 +162,7 @@ namespace TweetBook.Services
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim("id", user.Id)
                 };
-            var userClaims = await _userManager.GetClaimsAsync(user);
-            claims.AddRange(userClaims);
+            await AddClaimsAsync(user, claims);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
@@ -178,6 +177,15 @@ namespace TweetBook.Services
                 Success = true,
                 RefreshToken = refreshToken.Token
             };
+        }
+
+        private async Task AddClaimsAsync(IdentityUser user, List<Claim> claims)
+        {
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var role in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
         }
 
         private async Task<RefreshToken> CreateAndStoreRefreshToken(IdentityUser newUser, SecurityToken token)

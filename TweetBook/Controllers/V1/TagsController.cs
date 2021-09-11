@@ -25,7 +25,7 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPost(Tags.CreateTag)]
-        [Authorize(Policy = "TagCreator")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Create([FromBody] CreateTagRequest createTag)
         {
             var tag = new Tag { TagName = createTag.Name };
