@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1.Request;
+using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
 using TweetBook.Services;
 using static TweetBook.Contracts.V1.ApiRoutes;
@@ -14,15 +17,20 @@ namespace TweetBook.Controllers.V1
     public class TagsController : Controller
     {
         private readonly ITagService _tagService;
-        public TagsController(ITagService tagService)
+        private readonly IMapper _mapper;
+
+        public TagsController(ITagService tagService, IMapper mapper)
         {
             _tagService = tagService;
+            _mapper = mapper;
         }
 
         [HttpGet(Tags.GetTags)]
         public async Task<IActionResult> GetTags()
         {
-            return Ok(await _tagService.GetTagsAsync());
+            var tags = await _tagService.GetTagsAsync();
+            var getTagsResponse = _mapper.Map<IEnumerable<GetTagResponse>>(tags);
+            return Ok(getTagsResponse);
         }
 
         [HttpPost(Tags.CreateTag)]
