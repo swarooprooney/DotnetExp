@@ -22,11 +22,11 @@ namespace TweetBook.Controllers.V1
         [HttpGet(Tags.GetTags)]
         public async Task<IActionResult> GetTags()
         {
-           return Ok(await _tagService.GetTagsAsync());
+            return Ok(await _tagService.GetTagsAsync());
         }
 
         [HttpPost(Tags.CreateTag)]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateTagRequest createTag)
         {
             var tag = new Tag { TagName = createTag.Name };
@@ -38,7 +38,7 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpDelete(Tags.DeleteTag)]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = Constants.TweetBookConstants.MustOnlyWorkForTestDomainPolicy)]
         public async Task<IActionResult> Delete([FromRoute] Guid tagId)
         {
             if (await _tagService.DeleteTagAsync(tagId))

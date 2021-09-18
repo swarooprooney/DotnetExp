@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TweetBook.Authorization;
 using TweetBook.Options;
 
 namespace TweetBook.DIExtensions
@@ -39,7 +41,15 @@ namespace TweetBook.DIExtensions
                     x.SaveToken = true;
                     x.TokenValidationParameters = tokenValidationParameters;
                 });
-            services.AddAuthorization();
+            services.AddAuthorization(options=> 
+            {
+                options.AddPolicy(Constants.TweetBookConstants.MustOnlyWorkForTestDomainPolicy, policy =>
+                 {
+                     policy.AddRequirements(new WorksForCompanyRequirements("test.com"));
+                 }); 
+            });
+
+            services.AddSingleton<IAuthorizationHandler, WorksForCompanyHandler>();
         }
     }
 }
