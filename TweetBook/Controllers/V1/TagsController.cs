@@ -37,7 +37,7 @@ namespace TweetBook.Controllers.V1
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateTagRequest createTag)
         {
-            var tag = new Tag { TagName = createTag.Name };
+            var tag = _mapper.Map<Tag>(createTag);
             if (await _tagService.CreateTagAsync(tag))
             {
                 return Ok("Tag created successfully");
