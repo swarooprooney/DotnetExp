@@ -26,6 +26,7 @@
         {
             public const string CreateTag = Base + "/Tags";
             public const string GetTags = Base + "/Tags";
+            public const string DeleteTag = Base + "/Tags/{tagId}";
         }
     }
 }
