@@ -29,7 +29,7 @@ namespace TweetBook.Controllers.V1
         public async Task<IActionResult> GetTags()
         {
             var tags = await _tagService.GetTagsAsync();
-            var getTagsResponse = _mapper.Map<IEnumerable<GetTagResponse>>(tags);
+            var getTagsResponse = _mapper.Map<IEnumerable<TagResponse>>(tags);
             return Ok(getTagsResponse);
         }
 

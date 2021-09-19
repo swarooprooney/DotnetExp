@@ -8,7 +8,8 @@ namespace TweetBook.AutoMapperProfiles.V1
     {
         public DomainToResponseProfile()
         {
-            CreateMap<Tag, GetTagResponse>();
+            CreateMap<Tag, TagResponse>();
+            CreateMap<Post, PostResponse>().ForMember(dest=>dest.UserName,source=>source.MapFrom(x=>x.User.UserName));
         }
     }
 }
