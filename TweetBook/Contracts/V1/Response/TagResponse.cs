@@ -1,11 +1,9 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 
-namespace TweetBook.Domain
+namespace TweetBook.Contracts.V1.Response
 {
-    public class Tag
+    public class TagResponse
     {
-        [Key]
         public Guid TagId { get; set; }
 
         public string TagName { get; set; }

@@ -1,8 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TweetBook.Services;
 
 namespace TweetBook.DIExtensions
@@ -14,6 +10,7 @@ namespace TweetBook.DIExtensions
             service.AddScoped<IIdentityService, IdentityService>();
             service.AddScoped<IPostService, PostService>();
             service.AddScoped<ITagService, TagService>();
+            service.AddAutoMapper(typeof(Startup));
         }
     }
 }

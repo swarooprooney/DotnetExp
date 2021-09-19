@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
@@ -17,21 +19,27 @@ namespace TweetBook.Controllers.V1
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
-        public PostsController(IPostService postService)
+        private readonly IMapper _mapper;
+        public PostsController(IPostService postService, IMapper mapper)
         {
             _postService = postService;
+            _mapper = mapper;
         }
 
         [HttpGet(Posts.GetPosts)]
         public async Task<IActionResult> GetPosts()
         {
-            return Ok(await _postService.GetAllPostsAsync());
+            var posts = await _postService.GetAllPostsAsync();
+            var postsResponse = _mapper.Map<IEnumerable<PostResponse>>(posts);
+            return Ok(postsResponse);
         }
 
         [HttpGet(Posts.Get)]
         public async Task<IActionResult> Get([FromRoute] Guid postId)
         {
-            return Ok(await _postService.GetPostByIdAsync(postId));
+            var post = await _postService.GetPostByIdAsync(postId);
+            var postResponse = _mapper.Map<PostResponse>(post);
+            return Ok(postResponse);
         }
 
         [HttpPut(Posts.Update)]
@@ -46,7 +54,7 @@ namespace TweetBook.Controllers.V1
             post.Name = postToBeUpdated.Name;
             if (await _postService.UpdatePostAsync(post))
             {
-                return Ok(post);
+                return Ok(_mapper.Map<PostResponse>(post));
             }
             return NotFound();
         }
