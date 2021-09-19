@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation.AspNetCore;
+using Microsoft.Extensions.DependencyInjection;
+using TweetBook.Filters;
 using TweetBook.Services;
 
 namespace TweetBook.DIExtensions
@@ -11,6 +13,11 @@ namespace TweetBook.DIExtensions
             service.AddScoped<IPostService, PostService>();
             service.AddScoped<ITagService, TagService>();
             service.AddAutoMapper(typeof(Startup));
+            service.AddFluentValidation(config => config.RegisterValidatorsFromAssemblyContaining<Startup>());
+            service.AddMvc(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            });
         }
     }
 }
