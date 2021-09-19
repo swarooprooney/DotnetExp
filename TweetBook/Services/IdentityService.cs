@@ -8,7 +8,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using TweetBook.Contracts.V1.Request;
 using TweetBook.Data;
 using TweetBook.Domain;
 using TweetBook.Model;
