@@ -14,6 +14,7 @@ using static TweetBook.Contracts.V1.ApiRoutes;
 namespace TweetBook.Controllers.V1
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Produces("application/json")]
     public class TagsController : Controller
     {
         private readonly ITagService _tagService;
@@ -25,6 +26,11 @@ namespace TweetBook.Controllers.V1
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Returns all the tags in the system
+        /// </summary>
+        /// <returns>All tags</returns>
+        /// <response code = "200">Gets all the tags in the system</response>
         [HttpGet(Tags.GetTags)]
         public async Task<IActionResult> GetTags()
         {
@@ -33,8 +39,16 @@ namespace TweetBook.Controllers.V1
             return Ok(getTagsResponse);
         }
 
+        /// <summary>
+        /// Creates the tag in the system
+        /// </summary>
+        /// <param name="createTag">Create tag request</param>
+        /// <returns>Recently created tag</returns>
+        /// <response code = "200">Creates the tag</response>
+        /// <response code = "400">Error while creating tag</response>
         [HttpPost(Tags.CreateTag)]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(CreateTagResponse),200)]
         public async Task<IActionResult> Create([FromBody] CreateTagRequest createTag)
         {
             var tag = _mapper.Map<Tag>(createTag);
@@ -42,7 +56,7 @@ namespace TweetBook.Controllers.V1
             {
                 return Ok("Tag created successfully");
             }
-            return StatusCode(500, new { Error = "Unable to create tag at this moment, please try again later" });
+            return BadRequest(new { Error = "Unable to create tag at this moment, please try again later" });
         }
 
         [HttpDelete(Tags.DeleteTag)]

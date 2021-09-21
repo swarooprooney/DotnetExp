@@ -2,6 +2,9 @@
 {
     public class CreateTagRequest
     {
+        /// <summary>
+        /// Name of the tag
+        /// </summary>
         public string TagName { get; set; }
     }
 }
