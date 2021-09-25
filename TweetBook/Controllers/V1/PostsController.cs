@@ -16,6 +16,7 @@ namespace TweetBook.Controllers.V1
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
+    [Produces("application/json")]
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
@@ -27,6 +28,7 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpGet(Posts.GetPosts)]
+        [ProducesResponseType(typeof(IEnumerable<PostResponse>), 200)]
         public async Task<IActionResult> GetPosts()
         {
             var posts = await _postService.GetAllPostsAsync();
@@ -35,6 +37,7 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpGet(Posts.Get)]
+        [ProducesResponseType(typeof(PostResponse), 200)]
         public async Task<IActionResult> Get([FromRoute] Guid postId)
         {
             var post = await _postService.GetPostByIdAsync(postId);
@@ -43,12 +46,15 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPut(Posts.Update)]
+        [ProducesResponseType(typeof(PostResponse), 200)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        [ProducesResponseType(typeof(ErrorResponse), 403)]
         public async Task<IActionResult> Update([FromRoute] Guid postId, [FromBody] UpdatePost postToBeUpdated)
         {
             var isOwner = await _postService.CheckIfUserIsOwnerOfPostAsync(HttpContext.GetUserId(), postId);
             if (!isOwner)
             {
-                return StatusCode(403, new { error = "You are not the owner of the post" });
+                return StatusCode(403, CreateError("You are not the owner of the post"));
             }
             var post = await _postService.GetPostByIdAsync(postId);
             post.Name = postToBeUpdated.Name;
@@ -56,7 +62,7 @@ namespace TweetBook.Controllers.V1
             {
                 return Ok(_mapper.Map<PostResponse>(post));
             }
-            return NotFound();
+            return NotFound(CreateError("An error occured while updating the post, please try again later"));
         }
 
         [HttpPost(Posts.CreatePost)]
@@ -76,22 +82,35 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpDelete(Posts.Delete)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        [ProducesResponseType(typeof(ErrorResponse), 403)]
         public async Task<IActionResult> Delete([FromRoute] Guid postId)
         {
             var isOwner = await _postService.CheckIfUserIsOwnerOfPostAsync(HttpContext.GetUserId(), postId);
             if (!isOwner)
             {
-                return StatusCode(403,
-                    new
-                    {
-                        error = "You are not the owner of the post"
-                    });
+                return StatusCode(403, CreateError("You are not the owner of the post"));
             }
             if (await _postService.DeletePostAsync(postId))
             {
                 return NoContent();
             }
-            return NotFound();
+            return NotFound(CreateError("Cannot find the post"));
+        }
+
+        private ErrorResponse CreateError(string message)
+        {
+            return new ErrorResponse
+            {
+                Errors = new List<ErrorModel>
+                {
+                    new ErrorModel
+                    {
+                        Message = message
+                    }
+                }
+            };
         }
     }
 }

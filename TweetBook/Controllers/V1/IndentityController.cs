@@ -10,6 +10,7 @@ using static TweetBook.Contracts.V1.ApiRoutes;
 
 namespace TweetBook.Controllers.V1
 {
+    [Produces("application/json")]
     public class IndentityController : Controller
     {
         private readonly IIdentityService _identityService;
@@ -20,6 +21,8 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPost(Identity.Register)]
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequest userRegistrationRequest)
         {
             if (!ModelState.IsValid)
@@ -37,6 +40,8 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPost(Identity.Login)]
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest userLoginRequest)
         {
             var user = new UserModel
@@ -49,6 +54,8 @@ namespace TweetBook.Controllers.V1
         }
 
         [HttpPost(Identity.Refresh)]
+        [ProducesResponseType(typeof(AuthSuccessResponse), 200)]
+        [ProducesResponseType(typeof(AuthFailedResponse), 400)]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest refreshTokenRequest)
         {
             var refreshToken = new RefreshTokenModel
