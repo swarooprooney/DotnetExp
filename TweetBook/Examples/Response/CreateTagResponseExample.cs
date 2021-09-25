@@ -1,6 +1,5 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1.Response;
