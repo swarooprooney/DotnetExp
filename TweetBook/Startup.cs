@@ -20,9 +20,10 @@ namespace TweetBook
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddEntityFrameworkDependency(Configuration);
+            services.InstallEntityFrameworkDependency(Configuration);
             services.InstallJwtDependency(Configuration);
             services.InstallSwaggerDependency();
+            services.InstallCachingDependency(Configuration);
             services.InstallServices();
         }
 
