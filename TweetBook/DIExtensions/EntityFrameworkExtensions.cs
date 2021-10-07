@@ -8,7 +8,7 @@ namespace TweetBook.DIExtensions
 {
     public static class EntityFrameworkExtensions
     {
-        public static void AddEntityFrameworkDependency(this IServiceCollection services, IConfiguration configuration)
+        public static void InstallEntityFrameworkDependency(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<DataContext>(options =>
                 options.UseSqlServer(
