@@ -25,6 +25,7 @@ namespace TweetBook
             services.InstallSwaggerDependency();
             services.InstallCachingDependency(Configuration);
             services.InstallServices();
+            services.AddPaginationSupportToApi();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

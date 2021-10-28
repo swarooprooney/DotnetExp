@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Tweetbook.Contracts.V1.Response;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
@@ -36,7 +37,7 @@ namespace TweetBook.Controllers.V1
         public async Task<IActionResult> GetTags()
         {
             var tags = await _tagService.GetTagsAsync();
-            var getTagsResponse = _mapper.Map<IEnumerable<TagResponse>>(tags);
+            var getTagsResponse = new Response<IEnumerable<TagResponse>>( _mapper.Map<IEnumerable<TagResponse>>(tags));
             return Ok(getTagsResponse);
         }
 

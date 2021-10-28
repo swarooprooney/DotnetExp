@@ -9,7 +9,7 @@ namespace TweetBook.Services
     {
         public Task<bool> CreatePostAsync(Post post);
 
-        public Task<List<Post>> GetAllPostsAsync();
+        public Task<List<Post>> GetAllPostsAsync(PaginationFilter paginationFilter);
 
         public Task<Post> GetPostByIdAsync(Guid postId);
 
