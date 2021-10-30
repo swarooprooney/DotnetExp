@@ -15,10 +15,10 @@ namespace TweetBook.Helpers
         internal static PagedResponse<T> CreatePaginatedResponse<T>(IUriService uriService, PaginationFilter paginationFilter, IEnumerable<T> response)
         {
             var nextPage = paginationFilter.PageNumber >= 1
-            ? uriService.GetAllPostUri(new PaginationQuery(paginationFilter.PageNumber + 1, paginationFilter.PageSize)).ToString()
+            ? uriService.GetAllEntitiesUri(new PaginationQuery(paginationFilter.PageNumber + 1, paginationFilter.PageSize)).ToString()
             : null;
             var previousPage = paginationFilter.PageNumber - 1 >= 1
-                ? uriService.GetAllPostUri(new PaginationQuery(paginationFilter.PageNumber + 1, paginationFilter.PageSize)).ToString()
+                ? uriService.GetAllEntitiesUri(new PaginationQuery(paginationFilter.PageNumber + 1, paginationFilter.PageSize)).ToString()
                 : null;
             return new PagedResponse<T>
             {

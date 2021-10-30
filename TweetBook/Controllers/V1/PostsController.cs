@@ -26,8 +26,8 @@ namespace TweetBook.Controllers.V1
     {
         private readonly IPostService _postService;
         private readonly IMapper _mapper;
-        private readonly IUriService _uriService;
-        public PostsController(IPostService postService, IMapper mapper, IUriService uriService)
+        private readonly IPostUriService _uriService;
+        public PostsController(IPostService postService, IMapper mapper, IPostUriService uriService)
         {
             _postService = postService;
             _mapper = mapper;
@@ -93,7 +93,7 @@ namespace TweetBook.Controllers.V1
                 UserId = HttpContext.GetUserId()
             };
             await _postService.CreatePostAsync(post);
-            var locationUrl = _uriService.GetPostUri(post.PostId.ToString());
+            var locationUrl = _uriService.GetEntityUri(post.PostId.ToString());
             var response = new CreatePostResponse { PostId = post.PostId };
             return Created(locationUrl, response);
         }

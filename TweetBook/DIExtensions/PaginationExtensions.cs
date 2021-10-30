@@ -12,12 +12,12 @@ namespace TweetBook.DIExtensions
     {
         public static void AddPaginationSupportToApi(this IServiceCollection services)
         {
-            services.AddScoped<IUriService>(provider =>
+            services.AddScoped<IPostUriService>(provider =>
             {
                 var accessor = provider.GetRequiredService<IHttpContextAccessor>();
                 var request = accessor.HttpContext.Request;
                 var absoluteUri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent(), "/");
-                return new UriService(absoluteUri);
+                return new PostUriService(absoluteUri);
             });
         }
     }
