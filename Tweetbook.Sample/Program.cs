@@ -1,6 +1,6 @@
 ﻿using Refit;
-using System;
 using System.Threading.Tasks;
+using Tweetbook.Contracts.V1.Request.Queries;
 using Tweetbook.Sdk;
 
 namespace Tweetbook.Sample
@@ -29,15 +29,18 @@ namespace Tweetbook.Sample
             {
                 AuthorizationHeaderValueGetter = () => Task.FromResult(cachedToken)
             });
-
-            var allPosts = await tweetbookApi.GetPostsAsync();
+            var paginationQuery = new PaginationQuery
+            {
+                PageNumber = 1,
+                PageSize = 2
+            };
+            var allPosts = await tweetbookApi.GetPostsAsync(paginationQuery);
 
             var createPost = await tweetbookApi.CreateAsync(new TweetBook.Contracts.V1.Request.CreatePostRequest
             {
                 Name = "Post from SDK"
             });
-
-             allPosts = await tweetbookApi.GetPostsAsync();
+             allPosts = await tweetbookApi.GetPostsAsync(paginationQuery);
         }
     }
 }

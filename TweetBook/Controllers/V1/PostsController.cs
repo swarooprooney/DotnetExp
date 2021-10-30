@@ -4,12 +4,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Tweetbook.Contracts.V1.Request.Queries;
+using Tweetbook.Contracts.V1.Response;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 using TweetBook.Domain;
 using TweetBook.Filters;
 using TweetBook.GeneralExtensions;
+using TweetBook.Helpers;
 using TweetBook.Services;
 using static TweetBook.Contracts.V1.ApiRoutes;
 
@@ -22,29 +26,40 @@ namespace TweetBook.Controllers.V1
     {
         private readonly IPostService _postService;
         private readonly IMapper _mapper;
-        public PostsController(IPostService postService, IMapper mapper)
+        private readonly IPostUriService _uriService;
+        public PostsController(IPostService postService, IMapper mapper, IPostUriService uriService)
         {
             _postService = postService;
             _mapper = mapper;
+            _uriService = uriService;
         }
 
         [HttpGet(Posts.GetPosts)]
         [ProducesResponseType(typeof(IEnumerable<PostResponse>), 200)]
-        [Cached(600)]
-        public async Task<IActionResult> GetPosts()
+        //[Cached(600)]
+        public async Task<IActionResult> GetPosts([FromQuery] PaginationQuery pagination)
         {
-            var posts = await _postService.GetAllPostsAsync();
+            var paginationFilter = _mapper.Map<PaginationFilter>(pagination);
+            var posts = await _postService.GetAllPostsAsync(paginationFilter);
             var postsResponse = _mapper.Map<IEnumerable<PostResponse>>(posts);
-            return Ok(postsResponse);
+            if (paginationFilter is null || paginationFilter.PageNumber < 1 || paginationFilter.PageSize < 1)
+            {
+                var pagedResponse = new PagedResponse<PostResponse>(postsResponse);
+                return Ok(pagedResponse);
+            }
+
+            var paginationResponse = PaginationHelpers.CreatePaginatedResponse(_uriService, paginationFilter, postsResponse);
+        
+            return Ok(paginationResponse);
         }
 
         [HttpGet(Posts.Get)]
         [ProducesResponseType(typeof(PostResponse), 200)]
-        [Cached(600)]
+        //[Cached(600)]
         public async Task<IActionResult> Get([FromRoute] Guid postId)
         {
             var post = await _postService.GetPostByIdAsync(postId);
-            var postResponse = _mapper.Map<PostResponse>(post);
+            var postResponse = new Response<PostResponse>(_mapper.Map<PostResponse>(post));
             return Ok(postResponse);
         }
 
@@ -78,8 +93,7 @@ namespace TweetBook.Controllers.V1
                 UserId = HttpContext.GetUserId()
             };
             await _postService.CreatePostAsync(post);
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-            var locationUrl = baseUrl + "/" + Posts.Get.Replace("{postId}", post.PostId.ToString());
+            var locationUrl = _uriService.GetEntityUri(post.PostId.ToString());
             var response = new CreatePostResponse { PostId = post.PostId };
             return Created(locationUrl, response);
         }

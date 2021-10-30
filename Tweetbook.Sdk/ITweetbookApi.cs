@@ -1,7 +1,8 @@
 ﻿using Refit;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Tweetbook.Contracts.V1.Request.Queries;
+using Tweetbook.Contracts.V1.Response;
 using TweetBook.Contracts.V1.Request;
 using TweetBook.Contracts.V1.Response;
 
@@ -11,7 +12,7 @@ namespace Tweetbook.Sdk
     public interface ITweetbookApi
     {
         [Get("/api/v1/posts")]
-        Task<ApiResponse<IEnumerable<PostResponse>>> GetPostsAsync();
+        Task<ApiResponse<PagedResponse<PostResponse>>> GetPostsAsync([Query] PaginationQuery paginationQuery);
 
         [Get("/api/v1/posts/{postId}")]
         Task<ApiResponse<PostResponse>> GetAsync(Guid postId);
