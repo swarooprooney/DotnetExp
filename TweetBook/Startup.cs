@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TweetBook.DIExtensions;
 using TweetBook.Options;
+using TweetBook.ApplicationConfiguration;
 
 namespace TweetBook
 {
@@ -26,6 +27,7 @@ namespace TweetBook
             services.InstallCachingDependency(Configuration);
             services.InstallServices();
             services.AddPaginationSupportToApi();
+            services.InstallHealthCheckDependency(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,6 +42,7 @@ namespace TweetBook
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.ConfigureHealthCheck();
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
             app.UseSwagger(options =>
