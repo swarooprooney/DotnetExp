@@ -18,6 +18,7 @@ namespace TweetBook.HealthChecks
             try
             {
                 var database = _connectionMultiplexer.GetDatabase();
+                database.StringGet("Unknown");
                 return Task.FromResult(HealthCheckResult.Healthy());
             }
             catch (Exception ex)
