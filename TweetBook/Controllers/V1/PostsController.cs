@@ -37,10 +37,11 @@ namespace TweetBook.Controllers.V1
         [HttpGet(Posts.GetPosts)]
         [ProducesResponseType(typeof(IEnumerable<PostResponse>), 200)]
         //[Cached(600)]
-        public async Task<IActionResult> GetPosts([FromQuery] PaginationQuery pagination)
+        public async Task<IActionResult> GetPosts([FromQuery]GetPostsQuery getPostsQuery, [FromQuery] PaginationQuery pagination)
         {
             var paginationFilter = _mapper.Map<PaginationFilter>(pagination);
-            var posts = await _postService.GetAllPostsAsync(paginationFilter);
+            var getpostsFilter = _mapper.Map<GetPostsFilter>(getPostsQuery);
+            var posts = await _postService.GetAllPostsAsync(getpostsFilter,paginationFilter);
             var postsResponse = _mapper.Map<IEnumerable<PostResponse>>(posts);
             if (paginationFilter is null || paginationFilter.PageNumber < 1 || paginationFilter.PageSize < 1)
             {
