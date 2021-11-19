@@ -11,6 +11,7 @@ namespace TweetBook.AutoMapperProfiles.V1
         {
             CreateMap<CreateTagRequest, Tag>();
             CreateMap<PaginationQuery, PaginationFilter>();
+            CreateMap<GetPostsQuery, GetPostsFilter>();
         }
     }
 }
