@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{5F27
 		RedisTerminalInvoke.ps1 = RedisTerminalInvoke.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkConsole", "BenchmarkConsole\BenchmarkConsole.csproj", "{8AB52A45-EF7C-4D7F-B550-799F9994DD28}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCacheExtensionsExample", "RedisCacheExtensionsExample\RedisCacheExtensionsExample.csproj", "{FB53DC77-00FE-4EEC-A3D5-2205065C6181}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RestAPI", "RestAPI", "{93CB0C7B-A047-4869-8D2A-60C5AB0F246A}"
